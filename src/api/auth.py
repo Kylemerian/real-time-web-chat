@@ -17,6 +17,16 @@ def login_form_auth(
     logn: str = Form(...),
     password: str = Form(...)
 ) -> User:
+    """
+    Helper for parsing data from form for Sign In
+
+    Args:
+        logn (str, optional): login of user
+        password (str, optional): password of user
+
+    Returns:
+        User: object User filled data from args
+    """
     return User(username=logn, nickname=logn, hashed_password=password)
 
 def login_form_reg(
@@ -24,6 +34,17 @@ def login_form_reg(
     nick: str = Form(...),
     password: str = Form(...)
 ) -> User:
+    """
+    Helper for parsing data from form for Sign Up
+
+    Args:
+        logn (str, optional): login of user
+        logn (str, optional): nickname of user
+        password (str, optional): password of user
+
+    Returns:
+        User: object User filled data from args
+    """
     return User(username=logn, nickname=nick, hashed_password=password)
 
 
@@ -32,6 +53,16 @@ async def login(
     user: User = Depends(login_form_auth),
     session: AsyncSession=Depends(get_async_session)
 ):
+    """
+    Endpoint for Sign In
+
+    Args:
+        user (User, optional): User object with filled data
+        session (AsyncSession, optional): connection to database
+
+    Returns:
+        RedirectResponse: set JWT token into cookie and redirect user to main page (/app)
+    """
     usr = await usrService.userGetByLogin(user.username, session)
     if not usr or not usrService.verifyPassword(user.hashed_password, usr['hashed_password']):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
@@ -54,6 +85,16 @@ async def register(
     user: User = Depends(login_form_reg),
     session: AsyncSession=Depends(get_async_session)
 ):
+    """
+    Endpoint for Sign Up
+
+    Args:
+        user (User, optional): User object with filled data
+        session (AsyncSession, optional): connection to database
+
+    Returns:
+        RedirectResponse: redirect user to sign in page (/)
+    """
     res = await usrService.userAdd(user.nickname, user.username, user.hashed_password, session)
     return RedirectResponse(url="/", status_code=302)
 
@@ -65,5 +106,16 @@ async def setTgId(
     tgId: int = Form(...),
     session: AsyncSession=Depends(get_async_session)
 ):
+    """
+    Set telegram chat id for user
+
+    Args:
+        request (Request): request
+        tgId (int, optional): telegram chat id
+        session (AsyncSession, optional): connection to database
+
+    Returns:
+        int: user id
+    """
     uid = verify_jwt(request.cookies.get("access_token"))
     return await usrService.userSetTgId(uid, tgId, session)

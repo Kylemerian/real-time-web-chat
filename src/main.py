@@ -24,6 +24,15 @@ templates = Jinja2Templates(directory="../templates")
 
 @app.get("/")
 async def root(request: Request):
+    """
+    Endpoint for root
+
+    Args:
+        request (Request): request parameters
+
+    Returns:
+        _TemplateResponse: page for SignIn and SignUp
+    """
     return templates.TemplateResponse(request=request, name="enter.html")
 
 # @app.exception_handler(404)

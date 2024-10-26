@@ -1,6 +1,9 @@
 from db.crud import *
 from sqlalchemy.ext.asyncio import AsyncSession
 
+"""
+    Wrappers for CRUD functions united into several classes
+"""
 class UserService:
     async def userGetById(self, uid: int, session: AsyncSession):
         return await userGetById(uid, session)

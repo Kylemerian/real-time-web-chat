@@ -13,8 +13,6 @@ router = APIRouter()
 templates = Jinja2Templates(directory="../templates")
 
 
-clients = {}
-
 manager = ConnectionManager()
 
 def verify_jwt(token: str):
