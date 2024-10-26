@@ -23,6 +23,9 @@ python-multipart = "^0.0.12"
 psycopg2-binary = "^2.9.10"
 websockets = "^13.1"
 datetime = "^5.5"
+requests = "^2.32.3"
+aiogram = "^3.13.1"
+celery = "^5.4.0"
 
 
 [build-system]

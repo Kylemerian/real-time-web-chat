@@ -27,6 +27,13 @@ def verify_jwt(token: str):
         raise HTTPException(status_code=401, detail="Invalid JWT Token")
 
 
+@router.get("/getUsers")
+async def getUsers(request: Request, session: AsyncSession = Depends(get_async_session)):
+    uid = verify_jwt(request.cookies.get("access_token"))
+    users = await usrService.userGetAll(session)
+    return users
+
+
 @router.get("/app")
 async def root(request: Request):
     return templates.TemplateResponse(request=request, name="app.html")
@@ -42,23 +49,20 @@ async def getChats(request: Request, session: AsyncSession = Depends(get_async_s
 @router.post("/addChat")
 async def add_chat(
     request: Request,
-    user_id_1: int,
-    user_id_2: int,
-    session: AsyncSession = Depends(get_async_session),  # Dependency to get the DB session
+    # user_id_2: int,
+    session: AsyncSession = Depends(get_async_session),
 ):
     uid = verify_jwt(request.cookies.get("access_token"))
-
-    if user_id_1 != uid and user_id_2 != uid:
-        raise HTTPException(status_code=400, detail="One of the user IDs must belong to the authenticated user")
-
-    chat_id = await chatService.addChat(session, user_id_1, user_id_2)
+    body = await request.json()
+    user_id_2 = body.get("user_id")
+    chat_id = await chatService.addChat(session, uid, user_id_2)
 
     return {"chat_id": chat_id}
 
 @router.get("/getChats")
 async def get_chats(
     request: Request,
-    session: AsyncSession = Depends(get_async_session),  # Dependency to get the DB session
+    session: AsyncSession = Depends(get_async_session),
 ):
     uid = verify_jwt(request.cookies.get("access_token"))
 
@@ -73,8 +77,12 @@ async def get_history(
     session: AsyncSession = Depends(get_async_session),
 ):
     uid = verify_jwt(request.cookies.get("access_token"))
-    # valid uid
-    msgs = await msgService.getMessagesByChatId(session, chat_id)
+    chatMembers = await chatMmbrService.getChatMembersByChatId(session, chat_id)
+    uids_set = {item['user_id'] for item in chatMembers}
+    if uid in uids_set:
+        msgs = await msgService.getMessagesByChatId(session, chat_id)
+    else:
+        msgs = []
     
     return {'uid': uid, 'messages': msgs}
 
@@ -109,13 +117,13 @@ async def websocket_endpoint(websocket: WebSocket, session: AsyncSession = Depen
     try:
         while True:
             data = await websocket.receive_json()
-            now_utc = datetime.now(timezone.utc)  # Получаем текущее время с временной зоной UTC
+            now_utc = datetime.now(timezone.utc)
             now_naive = now_utc.replace(tzinfo=None)
             message_id = await msgService.addMessage(data['chat_id'], user_id, data['content'], now_naive, session)
             receps = await chatMmbrService.getChatMembersByChatId(session, data['chat_id'])
             for recep in receps:
-                await manager.send_message(recep['user_id'], {**data, 'isMyMessage': user_id == recep['user_id'], 'message_id': message_id, 'sender_id': user_id, 'time': datetime.now(timezone.utc).isoformat()})  # Отправляем сообщение обратно пользователю
+                await manager.send_message(recep['user_id'], {**data, 'isMyMessage': user_id == recep['user_id'], 'message_id': message_id, 'sender_id': user_id, 'time': datetime.now(timezone.utc).isoformat()}, session)  # Отправляем сообщение обратно пользователю
             # await manager.broadcast({**data, 'isMyMessage': user_id == # , 'message_id': message_id, 'sender_id': user_id, 'time': datetime.now(timezone.utc).isoformat()})  # Широковещательная отправка сообщения
     except WebSocketDisconnect:
         manager.disconnect(user_id)
-        await manager.broadcast(f"{user_id} left the chat")
+        # await manager.broadcast(f"{user_id} left the chat")

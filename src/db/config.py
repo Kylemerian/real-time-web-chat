@@ -11,3 +11,5 @@ DB_USER = os.environ.get("DB_USER")
 DB_PASS = os.environ.get("DB_PASS")
 
 SECRET_HASH = os.environ.get("SECRET_HASH")
+
+TGBOTTOKEN = os.environ.get("TGBOTTOKEN")

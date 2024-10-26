@@ -11,13 +11,22 @@ async def userAdd(nickname: str, username: str, hashed_password: str, session: A
     return user.id
 
 async def userGetAll(session: AsyncSession):
-    res = await session.scalars(select(User))
-    return res.all()
+    result = await session.execute(select(User.id, User.nickname))
+    users = result.fetchall()
+    return [{"id": user.id, "nickname": user.nickname} for user in users]
 
-async def userGetById(id: int, session: AsyncSession):
-    res = await session.scalars(select(User).filter_by(User.id == id))
-    res = res.scalar_one_or_none()
-    return {"username": res.username, "hashed_password": res.hashed_password}
+async def userGetById(idd: int, session: AsyncSession):
+    res = await session.scalars(select(User).filter_by(id=idd))
+    user = res.first()
+
+    if user is None:
+        return None
+
+    return {
+        "username": user.username,
+        "hashed_password": user.hashed_password,
+        "tg_id": user.tg_id
+    }
 
 async def userGetByLogin(login: str, session: AsyncSession):
     res = await session.execute(select(User).filter_by(username = login))
@@ -30,8 +39,33 @@ async def userGetByLogin(login: str, session: AsyncSession):
 def verifyPassword(passw: str, hashedPass: str):
     return passw == hashedPass
 
+async def userSetTgId(user_id:int, tgId: int, session: AsyncSession):
+    stmt = select(User).where(User.id == user_id)
+    result = await session.execute(stmt)
+    user = result.scalar_one()
+    
+    user.tg_id = tgId
+    
+    await session.commit()
+    return user_id
 
 async def addChat(session: AsyncSession, user_id: int, user_id2: int):
+    existing_chat_query = (
+        select(Chat)
+        .join(ChatMembers)
+        .filter(
+            ChatMembers.user_id.in_([user_id, user_id2]),
+            Chat.id == ChatMembers.chat_id
+        )
+        .group_by(Chat.id)
+        .having(func.count() > 1)
+    )
+
+    existing_chat = await session.execute(existing_chat_query)
+    chat = existing_chat.scalar()
+
+    if chat:
+        return chat.id
     newChat = Chat(chat_name = ".")
     session.add(newChat)
     await session.flush()
@@ -114,8 +148,7 @@ async def getUserChats(session: AsyncSession, user_id: int):
         }
         for row in rows
     ]
-    # result_dict = [dict(zip(columns, row)) for row in rows]
-    # return result_dict 
+    
     return chat_list
 
 

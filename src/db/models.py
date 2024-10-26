@@ -9,6 +9,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     nickname = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    tg_id = Column(Integer)
     
 class Chat(Base):
     __tablename__ = "chats"

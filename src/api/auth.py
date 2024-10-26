@@ -1,4 +1,4 @@
-from fastapi import Form, Depends, HTTPException, APIRouter, status
+from fastapi import Form, Depends, HTTPException, APIRouter, status, Request, Body
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.templating import Jinja2Templates
@@ -8,6 +8,7 @@ import datetime
 from db.config import SECRET_HASH
 from db.services import *
 from db.db import *
+from .chat import verify_jwt
 
 router = APIRouter()
 
@@ -55,3 +56,14 @@ async def register(
 ):
     res = await usrService.userAdd(user.nickname, user.username, user.hashed_password, session)
     return RedirectResponse(url="/", status_code=302)
+
+
+
+@router.post("/setTgId")
+async def setTgId(
+    request: Request,
+    tgId: int = Form(...),
+    session: AsyncSession=Depends(get_async_session)
+):
+    uid = verify_jwt(request.cookies.get("access_token"))
+    return await usrService.userSetTgId(uid, tgId, session)

@@ -18,6 +18,9 @@ class UserService:
     
     async def userGetByLogin(self, login: str, session: AsyncSession):
         return await userGetByLogin(login, session)
+    
+    async def userSetTgId(self, uid: int, tgId: int, session: AsyncSession):
+        return await userSetTgId(uid, tgId, session)
 
 class MessageService:
     async def addMessage(self, chat_id: int, user_id: int, message: str, time: DateTime, session: AsyncSession):

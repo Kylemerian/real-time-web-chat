@@ -13,7 +13,7 @@
             font-family: 'Roboto', sans-serif;
         }
         .bg-pattern {
-            background-image: url('https://placehold.co/1920x1080/000000/FFFFFF?text=Background+Pattern');
+            background-color: rgb(10, 20 ,30);
             background-size: cover;
         }
     </style>
@@ -22,28 +22,47 @@
     <div class="w-1/4 bg-gray-800 flex flex-col">
         <div
             class="flex items-center justify-between p-4 border-b border-gray-700">
-            <div class="flex items-center space-x-2">
-                <i class="fas fa-bars text-xl"></i>
+            <div class="flex items-center space-x-2 flex-grow">
+                <i id="settings-icon" class="fas fa-bars text-xl"></i>
                 <input
-                    class="bg-gray-700 text-white rounded-full px-4 py-1 focus:outline-none"
+                    class="bg-gray-700 text-white rounded-full px-4 py-1 w-full focus:outline-none"
                     placeholder="Search" type="text" />
-            </div>
-            <div class="flex space-x-2">
-                <img alt="Profile 1" class="rounded-full" height="40"
-                    src="https://storage.googleapis.com/a1aa/image/UrfGfwT8ixsjWkukRHpVeku8DTtO05pS2dWircvWqDsfVylOB.jpg"
-                    width="40" />
-                <img alt="Profile 2" class="rounded-full" height="40"
-                    src="https://storage.googleapis.com/a1aa/image/g2nLaB6KtG69ExfUo7bFteXPhEQxisIa9meKK3ufnDevrkLdC.jpg"
-                    width="40" />
-                <img alt="Profile 3" class="rounded-full" height="40"
-                    src="https://storage.googleapis.com/a1aa/image/m20OwSQ9BUZmBp0p3qkKuxkBzJWvuKfGVjjyu9K4swawSu0JA.jpg"
-                    width="40" />
             </div>
         </div>
         <div class="overflow-y-auto flex-1" id="chat-list">
             
         </div>
+        <button id="new-chat-button" class=" bottom-4 right-4 bg-purple-600 text-white rounded-full p-3 shadow-lg hover:bg-purple-700 transition-colors">
+            <i class="fas fa-plus"></i>
+        </button>
     </div>
+
+    
+
+    <div id="submenu" class="absolute top-20 left-0 bg-gray-700 text-white w-1/4 hidden shadow-lg rounded-lg">
+        <ul class="p-4 space-y-2">
+            <li><a href="#" class="hover:bg-gray-600 block px-4 py-2 rounded">Настройки профиля</a></li>
+            <li><a href="#" class="hover:bg-gray-600 block px-4 py-2 rounded">Выйти</a></li>
+        </ul>
+        <form id="chat-id-form" action="/setTgId" method="post" class="p-4 space-y-2">
+            <label for="tgId" class="text-sm">Введите chat_id:</label>
+            <input 
+                type="number" 
+                id="tgId" 
+                name="tgId" 
+                class="bg-gray-600 text-white w-full rounded px-2 py-1 focus:outline-none"
+                placeholder="Ваш chat_id" 
+                required
+            />
+            <button 
+                type="submit" 
+                class="w-full bg-blue-500 text-white rounded px-4 py-2 mt-2 hover:bg-blue-600 focus:outline-none"
+            >
+                Отправить
+            </button>
+        </form>
+    </div>
+
     <div class="w-3/4 bg-pattern flex flex-col hidden" id="chat-window">
         
         <div class="p-4 border-t border-gray-700 flex items-center">
@@ -56,6 +75,21 @@
                 class="bg-blue-600 text-white rounded-full px-4 py-2 ml-2 hover:bg-blue-700">
                 <i class="fas fa-paper-plane"></i>
             </button>
+        </div>
+    </div>
+
+    <div id="user-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center hidden">
+        <div class="bg-gray-900 rounded-lg shadow-lg p-6 w-1/4 max-h-[80vh] overflow-hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl text-white">Создать новый чат</h2>
+                <button id="close-modal" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <input id="search-input" class="bg-gray-700 text-white rounded-full px-4 py-1 w-full focus:outline-none mb-4" placeholder="Поиск пользователей" type="text" />
+            <div id="user-list" class="overflow-y-auto max-h-60">
+                
+            </div>
         </div>
     </div>
 </body>
