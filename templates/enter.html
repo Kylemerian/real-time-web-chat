@@ -1,0 +1,91 @@
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Login Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        rel="stylesheet" />
+    <style>
+        body {
+            background: url("https://i.pinimg.com/originals/e4/ec/67/e4ec6792564975cfda17f64e36220e6c.jpg") no-repeat center center fixed;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-blue-900">
+    <div style="display:block;" id="authDiv"
+        class="bg-gray-800 p-8 rounded-lg shadow-lg flex items-center space-x-8">
+        <div>
+            <h2 class="text-white text-2xl font-bold mb-2">С возвращением!</h2>
+            <p class="text-gray-400 mb-4">Мы так рады видеть вас снова!</p>
+            <form id="form_login" action="/login" method="post">
+                <label class="block text-gray-400 mb-1" for="logn">
+                    ЛОГИН *
+                </label>
+                <input class="w-full p-2 mb-4 bg-gray-700 text-white rounded"
+                    id="logn" name="logn" type="text" />
+                <label class="block text-gray-400 mb-1" for="password">
+                    ПАРОЛЬ *
+                </label>
+                <input class="w-full p-2 mb-4 bg-gray-700 text-white rounded"
+                    id="password" name="password" type="password" />
+                <a class="text-blue-500 text-sm mb-4 inline-block" href="#">
+                    Забыли пароль?
+                </a>
+                <button class="w-full bg-blue-600 text-white p-2 rounded">
+                    Вход
+                </button>
+            </form>
+            <p class="text-gray-400 mt-4">
+                Нужна учетная запись?
+                <a style="cursor: pointer;" class="text-blue-500" onclick="toggleReg()"> Зарегистрироваться </a>
+            </p>
+        </div>
+        <!-- <div class="flex flex-col items-center">
+            <img alt="QR-код" class="mb-2" height="150"
+                src="https://storage.googleapis.com/a1aa/image/jFf4cX0l0NyXAq4RkL4x3g98nuaKShO3L2DBa8mmzJuAElzJA.jpg"
+                width="150" />
+            
+        </div> -->
+    </div>
+
+
+    <div style="display:none;" id="regDiv" class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-white text-2xl mb-6">Создать учётную запись</h2>
+        <form action="/register" method="post">
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-1" for="nick">ОТОБРАЖАЕМОЕ ИМЯ *</label>
+                <input class="w-full p-2 bg-gray-700 text-white rounded" type="text" name="nick" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-1" for="logn">ЛОГИН *</label>
+                <input class="w-full p-2 bg-gray-700 text-white rounded" type="text" name="logn" required>
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-400 mb-1" for="password">ПАРОЛЬ *</label>
+                <input class="w-full p-2 bg-gray-700 text-white rounded" type="password" name="password" required>
+            </div>
+            
+            <button class="w-full p-2 bg-blue-600 text-white rounded hover:bg-blue-700">Продолжить</button>
+        </form>
+        <p class="text-gray-400 text-sm mt-2">Уже зарегистрированы? <a style="cursor: pointer;" onclick="toggleReg()" class="text-blue-500">Войти</a></p>
+    </div>
+</body>
+</html>
+<script>
+    function toggleReg() {
+        var block1 = document.getElementById("authDiv");
+        var block2 = document.getElementById("regDiv");
+
+        // Переключение блоков
+        if (block1.style.display === "block") {
+            block1.style.display = "none";
+            block2.style.display = "block";
+        } else {
+            block1.style.display = "block";
+            block2.style.display = "none";
+        }
+    }
+</script>
