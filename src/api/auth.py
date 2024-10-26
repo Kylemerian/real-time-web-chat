@@ -31,8 +31,8 @@ async def login(
     user: User = Depends(login_form_auth),
     session: AsyncSession=Depends(get_async_session)
 ):
-    usr = await UserService.userGetByLogin(user.username, session)
-    if not usr or not UserService.verifyPassword(user.hashed_password, usr['hashed_password']):
+    usr = await usrService.userGetByLogin(user.username, session)
+    if not usr or not usrService.verifyPassword(user.hashed_password, usr['hashed_password']):
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
     token = jwt.encode({"sub": user.username, "userId": usr['id'], "nick": user.nickname, "exp": datetime.datetime.now() + datetime.timedelta(minutes=1440)}, SECRET_HASH, algorithm="HS256")
     response = RedirectResponse(url="/app", status_code=302)
@@ -53,5 +53,5 @@ async def register(
     user: User = Depends(login_form_reg),
     session: AsyncSession=Depends(get_async_session)
 ):
-    res = await UserService.userAdd(user.nickname, user.username, user.hashed_password, session)
+    res = await usrService.userAdd(user.nickname, user.username, user.hashed_password, session)
     return RedirectResponse(url="/", status_code=302)
