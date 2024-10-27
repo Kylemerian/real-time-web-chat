@@ -81,8 +81,8 @@ async def get_history(
         msgs = await msgService.getMessagesByChatId(session, chat_id)
     else:
         msgs = []
-    
-    return {'uid': uid, 'messages': msgs}
+    another_uid = (uids_set - {uid}).pop()
+    return {'uid': uid, 'messages': msgs, 'isOnline': manager.is_user_online(another_uid)}
 
 def get_current_user(request):
     token = request.cookies.get("access_token")

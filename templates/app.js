@@ -72,11 +72,11 @@ document.addEventListener("DOMContentLoaded", function () {
         chatWindow.classList.remove('hidden');
 
         chatWindow.innerHTML = `
-            <div class="flex items-center justify-between p-4 border-b border-gray-700">
+            <div class="flex items-center justify-between p-4 border-b border-gray-700 bg-gray-800">
                 <div class="flex items-center space-x-2">
                     <img alt="Profile" class="rounded-full" height="40" src="https://placehold.co/40x40/000/FFF" width="40" />
                     <span class="text-lg font-semibold">${chatName}</span>
-                    <span class="text-gray-500 text-sm">${chatId}</span>
+                    <span class=" ${data.isOnline ? 'text-green-500' : 'text-red-500'}  text-sm">${data.isOnline ? 'Online' : 'Offline'}</span>
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto p-4" id="chat-messages">
