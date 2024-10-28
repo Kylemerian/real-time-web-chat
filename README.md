@@ -44,8 +44,8 @@
 ### 1. Клонирование репозитория
 
 ```bash
-git clone <URL_репозитория>
-cd <название_директории>
+git clone https://github.com/Kylemerian/real-time-web-chat.git
+cd real-time-web-chat
 ```
 
 ## 2. Настройка переменных окружения
