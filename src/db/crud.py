@@ -45,7 +45,7 @@ async def userGetById(idd: int, session: AsyncSession):
         session (AsyncSession): connection to db
 
     Returns:
-        dict: dict containing username, encrypted password and telegram chat id for bot notification
+        dict: dict containing username, nickname, encrypted password and telegram chat id for bot notification
     """
     res = await session.scalars(select(User).filter_by(id=idd))
     user = res.first()
@@ -55,6 +55,7 @@ async def userGetById(idd: int, session: AsyncSession):
 
     return {
         "username": user.username,
+        "nickname": user.nickname,
         "hashed_password": user.hashed_password,
         "tg_id": user.tg_id
     }

@@ -1,4 +1,4 @@
-from db.crud import *
+from src.db.crud import *
 from sqlalchemy.ext.asyncio import AsyncSession
 
 """
