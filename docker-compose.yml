@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./src:/app/src  # Монтируем папку src
+      - ./templates:/app/templates  # Монтируем папку templates
+    expose:
+      - 8000
+    environment:
+      - PYTHONPATH=/app/src
+      - SECRET_HASH=${SECRET_HASH}
+      - DB_HOST=db
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - TGBOTTOKEN=${TGBOTTOKEN}
+      - REDIS_HOST=redis
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+
+  celery:
+    build: .
+    command: celery -A src.bot.celery_app worker --loglevel=info
+    environment:
+      - PYTHONPATH=/app/src
+      - TGBOTTOKEN=${TGBOTTOKEN}
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+
+  bot:
+    build: .
+    command: python3 src/bot/celery_app.py 
+    environment:
+      - PYTHONPATH=/app/src
+      - TGBOTTOKEN=${TGBOTTOKEN}
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+
+  alembic:
+    build: .
+    command: alembic upgrade head
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=db
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf  # Копируем конфиг Nginx
+      - ./src:/app/src  # Доступ к кодовым файлам
+      - ./templates:/app/templates  # Доступ к шаблонам
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+
+
+volumes:
+  pgdata:
