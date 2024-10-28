@@ -99,11 +99,10 @@ async def register(
     return RedirectResponse(url="/", status_code=302)
 
 
-
 @router.post("/setTgId")
 async def setTgId(
     request: Request,
-    tgId: int = Form(...),
+    tgId: dict = Body(...),
     session: AsyncSession=Depends(get_async_session)
 ):
     """
@@ -118,4 +117,4 @@ async def setTgId(
         int: user id
     """
     uid = verify_jwt(request.cookies.get("access_token"))
-    return await usrService.userSetTgId(uid, tgId, session)
+    return await usrService.userSetTgId(uid, int(tgId['tgId']), session)

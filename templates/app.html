@@ -42,9 +42,9 @@
     <div id="submenu" class="absolute top-20 left-0 bg-gray-700 text-white w-1/4 hidden shadow-lg rounded-lg">
         <ul class="p-4 space-y-2">
             <li><a href="#" class="hover:bg-gray-600 block px-4 py-2 rounded">Настройки профиля</a></li>
-            <li><a href="#" class="hover:bg-gray-600 block px-4 py-2 rounded">Выйти</a></li>
+            <li><a href="/" class="hover:bg-gray-600 block px-4 py-2 rounded">Выйти</a></li>
         </ul>
-        <form id="chat-id-form" action="/setTgId" method="post" class="p-4 space-y-2">
+        <form id="chat-id-form" onsubmit="sendTgId(event)" class="p-4 space-y-2">
             <label for="tgId" class="text-sm">Введите chat_id:</label>
             <input 
                 type="number" 

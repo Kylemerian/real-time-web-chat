@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('new-chat-button').addEventListener('click', openModal);
     document.getElementById('close-modal').addEventListener('click', closeModal);
     document.getElementById('search-input').addEventListener('input', filterUsers);
+    document.getElementById('chat-id-form').addEventListener('submit', sendTgId);
 
     function loadChats() {
         fetch('/getChats')
@@ -270,4 +271,28 @@ async function addChat(userId) {
     }
 }
 
+function sendTgId(event) {
+    event.preventDefault();
 
+    const tgId = document.getElementById('tgId').value;
+    document.getElementById('submenu').classList.add('hidden');
+    fetch('/setTgId', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ tgId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error;
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data);
+    })
+    .catch((error) => {
+        console.error('Ошибка:', error);
+    });
+}
