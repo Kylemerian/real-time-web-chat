@@ -1,16 +1,16 @@
 from fastapi import APIRouter, status, Request, HTTPException, File, WebSocket, Depends, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
-from db.services import *
-from db.db import *
+from src.db.services import *
+from src.db.db import *
 import json
 import jwt
-from .connectionManager import *
-from db.config import SECRET_HASH
+from src.api.connectionManager import *
+from src.db.config import SECRET_HASH
 from datetime import datetime, timezone
 
 
 router = APIRouter()
-templates = Jinja2Templates(directory="../templates")
+templates = Jinja2Templates(directory="templates")
 
 
 manager = ConnectionManager()
@@ -67,6 +67,7 @@ async def get_chats(
     chats = await chatService.getUserChats(session, uid)
 
     return chats
+
 
 @router.get("/chat/{chat_id}")
 async def get_history(

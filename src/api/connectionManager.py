@@ -1,14 +1,14 @@
 from fastapi import WebSocket
 from typing import Dict
-from db.services import usrService
+from src.db.services import usrService
 import redis
-from db.config import *
-from db.models import User
+from src.db.config import *
+from src.db.models import User
 from sqlalchemy.ext.asyncio import AsyncSession
-from bot.bot import send_message_task
+from src.bot.celery_app import *
 
 
-redis_client = redis.StrictRedis(host=DB_HOST, port=6379, db=0)
+redis_client = redis.StrictRedis(host=REDIS_HOST, port=6379, db=0)
 
 class ConnectionManager:
     def __init__(self):
@@ -29,9 +29,10 @@ class ConnectionManager:
         else:
             print(f"USER {user_id} offline")
             usr = await usrService.userGetById(user_id, session)
+            sender = await usrService.userGetById(message['sender_id'], session)
             if usr['tg_id']:
-                print(f"Send notif to tg: {user_id} {usr['tg_id']}")
-            send_message_task.delay(usr['tg_id'], message['content'])
+                # print(f"Send notif to tg: {user_id} {usr['tg_id']}")
+                send_message_task.delay(usr['tg_id'], message, sender['nickname'])
 
     async def broadcast(self, message: dict):
         for connection in self.active_connections.values():

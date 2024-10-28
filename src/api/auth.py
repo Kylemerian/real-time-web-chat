@@ -5,10 +5,10 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 import jwt
 import datetime
-from db.config import SECRET_HASH
-from db.services import *
-from db.db import *
-from .chat import verify_jwt
+from src.db.config import SECRET_HASH
+from src.db.services import *
+from src.db.db import *
+from src.api.chat import verify_jwt
 
 router = APIRouter()
 
