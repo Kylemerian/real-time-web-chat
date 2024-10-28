@@ -2,10 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-import asyncio
 from src.api import auth, chat
 from src.bot.celery_app import *
-# from bot.bot import start_bot
 
 
 app = FastAPI()
@@ -22,13 +20,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# async def lifespan(app: FastAPI):
-#     await start_bot()  # Запуск бота
-#     yield  # Возвращает управление FastAPI, когда приложение запущено
-#     # Здесь можно добавить код для завершения работы, если это необходимо
 
-# # Присваиваем наш генератор lifespan
-# app.lifespan = lifespan
 
 templates = Jinja2Templates(directory="templates")
 

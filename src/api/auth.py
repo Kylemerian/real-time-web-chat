@@ -1,6 +1,5 @@
 from fastapi import Form, Depends, HTTPException, APIRouter, status, Request, Body
 from fastapi.responses import RedirectResponse
-from fastapi.security import OAuth2PasswordBearer
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 import jwt

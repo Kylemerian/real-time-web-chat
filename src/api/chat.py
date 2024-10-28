@@ -7,11 +7,12 @@ import jwt
 from src.api.connectionManager import *
 from src.db.config import SECRET_HASH
 from datetime import datetime, timezone
+import redis
 
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
-
+redis_client = redis.StrictRedis(host=REDIS_HOST, port=6379, db=0)
 
 manager = ConnectionManager()
 
@@ -23,6 +24,14 @@ def verify_jwt(token: str):
         raise HTTPException(status_code=401, detail="JWT Token has expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid JWT Token")
+
+def json_serial(obj):
+    """
+    Сериализация `datetime` объектов в строки
+    """
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError("Type not serializable")
 
 
 @router.get("/getUsers")
@@ -37,25 +46,18 @@ async def root(request: Request):
     return templates.TemplateResponse(request=request, name="app.html")
 
 
-@router.get("/chats")
-async def getChats(request: Request, session: AsyncSession = Depends(get_async_session)):
-    uid = verify_jwt(request.cookies.get("access_token"))
-    chats = await chatService.getUserChats(session, uid)  
-
-    return chats
-
 @router.post("/addChat")
 async def add_chat(
     request: Request,
-    # user_id_2: int,
     session: AsyncSession = Depends(get_async_session),
 ):
     uid = verify_jwt(request.cookies.get("access_token"))
     body = await request.json()
     user_id_2 = body.get("user_id")
     chat_id = await chatService.addChat(session, uid, user_id_2)
-
+    redis_client.delete(f"user_chats:{uid}")
     return {"chat_id": chat_id}
+
 
 @router.get("/getChats")
 async def get_chats(
@@ -63,9 +65,14 @@ async def get_chats(
     session: AsyncSession = Depends(get_async_session),
 ):
     uid = verify_jwt(request.cookies.get("access_token"))
+    cache_key = f"user_chats:{uid}"
+
+    cached_chats = redis_client.get(cache_key)
+    if cached_chats:
+        return json.loads(cached_chats)
 
     chats = await chatService.getUserChats(session, uid)
-
+    redis_client.setex(cache_key, 300, json.dumps(chats, default=json_serial))
     return chats
 
 
@@ -76,14 +83,35 @@ async def get_history(
     session: AsyncSession = Depends(get_async_session),
 ):
     uid = verify_jwt(request.cookies.get("access_token"))
-    chatMembers = await chatMmbrService.getChatMembersByChatId(session, chat_id)
-    uids_set = {item['user_id'] for item in chatMembers}
-    if uid in uids_set:
-        msgs = await msgService.getMessagesByChatId(session, chat_id)
+    cache_key = f"chat_history:{chat_id}"
+
+    cached_data = redis_client.get(cache_key)
+    
+    if cached_data:
+        data = json.loads(cached_data)
+        msgs = data['messages']
+        another_uid = data.get('another_uid')
     else:
-        msgs = []
-    another_uid = (uids_set - {uid}).pop()
-    return {'uid': uid, 'messages': msgs, 'isOnline': manager.is_user_online(another_uid)}
+        chatMembers = await chatMmbrService.getChatMembersByChatId(session, chat_id)
+        uids_set = {item['user_id'] for item in chatMembers}
+        
+        if uid in uids_set:
+            msgs = await msgService.getMessagesByChatId(session, chat_id)
+            another_uid = (uids_set - {uid}).pop() if uids_set - {uid} else None
+            
+            redis_client.setex(cache_key, 300, json.dumps({'messages': msgs, 'another_uid': another_uid}, default=json_serial))
+        else:
+            msgs = []
+            another_uid = None
+
+    result = {
+        'uid': uid,
+        'messages': msgs,
+        'isOnline': manager.is_user_online(another_uid) if another_uid else False,
+        'another_uid': another_uid
+    }
+    
+    return result
 
 def get_current_user(request):
     token = request.cookies.get("access_token")
@@ -120,9 +148,11 @@ async def websocket_endpoint(websocket: WebSocket, session: AsyncSession = Depen
             now_naive = now_utc.replace(tzinfo=None)
             message_id = await msgService.addMessage(data['chat_id'], user_id, data['content'], now_naive, session)
             receps = await chatMmbrService.getChatMembersByChatId(session, data['chat_id'])
+            cache_key = f"chat_history:{data['chat_id']}"
+            redis_client.delete(cache_key)
             for recep in receps:
-                await manager.send_message(recep['user_id'], {**data, 'isMyMessage': user_id == recep['user_id'], 'message_id': message_id, 'sender_id': user_id, 'time': datetime.now(timezone.utc).isoformat()}, session)  # Отправляем сообщение обратно пользователю
-            # await manager.broadcast({**data, 'isMyMessage': user_id == # , 'message_id': message_id, 'sender_id': user_id, 'time': datetime.now(timezone.utc).isoformat()})  # Широковещательная отправка сообщения
+                await manager.send_message(recep['user_id'], {**data, 'isMyMessage': user_id == recep['user_id'], 'message_id': message_id, 'sender_id': user_id, 'time': datetime.now(timezone.utc).isoformat()}, session)
+
     except WebSocketDisconnect:
         manager.disconnect(user_id)
         # await manager.broadcast(f"{user_id} left the chat")
