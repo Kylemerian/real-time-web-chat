@@ -16,7 +16,7 @@ app.autodiscover_tasks(['bot'])
 
 
 def run_async(coro):
-    """Запускает асинхронную корутину в синхронном контексте."""
+    """Runs an asynchronous routine in a synchronous context"""
     loop = asyncio.get_event_loop()
     if loop.is_running():
         future = asyncio.run_coroutine_threadsafe(coro, loop)

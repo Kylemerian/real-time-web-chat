@@ -27,7 +27,7 @@ def verify_jwt(token: str):
 
 def json_serial(obj):
     """
-    Сериализация `datetime` объектов в строки
+    Serialize `datetime` obj into str
     """
     if isinstance(obj, datetime):
         return obj.isoformat()
@@ -36,6 +36,16 @@ def json_serial(obj):
 
 @router.get("/getUsers")
 async def getUsers(request: Request, session: AsyncSession = Depends(get_async_session)):
+    """
+    Endpoint to get user list
+
+    Args:
+        request (Request): request
+        session (AsyncSession, optional): connection to database
+
+    Returns:
+        list: list of dicts containing user info
+    """
     uid = verify_jwt(request.cookies.get("access_token"))
     users = await usrService.userGetAll(session)
     return users
@@ -43,6 +53,15 @@ async def getUsers(request: Request, session: AsyncSession = Depends(get_async_s
 
 @router.get("/app")
 async def root(request: Request):
+    """
+    Endpoint to main page of web chat
+
+    Args:
+        request (Request): request
+
+    Returns:
+        _TemplateResponse: page of web chat
+    """
     return templates.TemplateResponse(request=request, name="app.html")
 
 
@@ -51,6 +70,16 @@ async def add_chat(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
 ):
+    """
+    Endpoint to create new chat
+
+    Args:
+        request (Request): request
+        session (AsyncSession, optional): connection to database
+
+    Returns:
+        dict: dict containing chat_id of new chat
+    """
     uid = verify_jwt(request.cookies.get("access_token"))
     body = await request.json()
     user_id_2 = body.get("user_id")
@@ -64,6 +93,16 @@ async def get_chats(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
 ):
+    """
+    Endpoint to get list of user chat
+
+    Args:
+        request (Request): request
+        session (AsyncSession, optional): connection to database
+
+    Returns:
+        list: list of dicts containing chat info
+    """
     uid = verify_jwt(request.cookies.get("access_token"))
     cache_key = f"user_chats:{uid}"
 
@@ -82,6 +121,17 @@ async def get_history(
     chat_id: int,
     session: AsyncSession = Depends(get_async_session),
 ):
+    """
+    Endpoint to get history of messages
+
+    Args:
+        request (Request): request
+        chat_id (int): chat id
+        session (AsyncSession, optional): connection to database
+
+    Returns:
+        dict: uid, online status, uid of another participant, list of messages
+    """
     uid = verify_jwt(request.cookies.get("access_token"))
     cache_key = f"chat_history:{chat_id}"
 
@@ -138,6 +188,13 @@ def get_current_user(request):
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, session: AsyncSession = Depends(get_async_session)):
+    """
+    Endpoint to exchange messages
+
+    Args:
+        websocket (WebSocket): websocket connection
+        session (AsyncSession, optional): connection to database
+    """
     user_id = get_current_user(websocket)
     await manager.connect(user_id, websocket)
     
